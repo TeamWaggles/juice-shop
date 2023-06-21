@@ -31,8 +31,6 @@ jobs:
           node-version: 18
       - name: "Install CLI tools"
         run: npm install -g @angular/cli@$ANGULAR_CLI_VERSION
-      - name: "Install dependencies"
-        run: npm install
       - name: "Install application minimalistically"
         run: |
           npm install --ignore-scripts
@@ -60,6 +58,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2 # changed from master to v2
+        
+      - name:  Use Node.js 18
+        uses: actions/setup-node@v2
+        
+      - name: "Install dependencies"
+        run: npm install
 
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/node@0.3.0 # Updated to use a specific version instead of master
@@ -68,11 +72,14 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --sarif-file-output=snyk.sarif
+          command: test
+          json: false
 
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: snyk.sarif 
+        env:
           token: ${{ secrets.GH_TOKEN }}
   coding-challenge-rsn:
     runs-on: windows-latest
